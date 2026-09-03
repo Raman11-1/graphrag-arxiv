@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GraphRAG</title>
+<link rel="stylesheet" href="/static/styles.css">
+<script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <h1 class="brand">GraphRAG</h1>
+    <p class="brand-sub">Knowledge graph + vector retrieval over research papers</p>
+
+    <div class="side-label">Corpus</div>
+    <div class="stat-grid" id="stats">
+      <div class="stat"><div class="stat-val" id="s-papers">–</div><div class="stat-key">papers</div></div>
+      <div class="stat"><div class="stat-val" id="s-chunks">–</div><div class="stat-key">chunks</div></div>
+      <div class="stat"><div class="stat-val" id="s-ents">–</div><div class="stat-key">entities</div></div>
+      <div class="stat"><div class="stat-val" id="s-rels">–</div><div class="stat-key">relations</div></div>
+    </div>
+
+    <div class="side-label">Retrieval</div>
+    <div class="side-field">
+      <label for="mode">Mode</label>
+      <select id="mode">
+        <option value="">auto — let the router decide</option>
+        <option value="vector">vector — passages</option>
+        <option value="graph">graph — Cypher</option>
+        <option value="global">global — community summaries</option>
+        <option value="hybrid">hybrid — both</option>
+      </select>
+    </div>
+    <div class="side-field">
+      <label for="k">Passages retrieved: <span id="k-val">8</span></label>
+      <input type="range" id="k" min="3" max="20" value="8">
+    </div>
+
+    <div class="side-meta">
+      backend <code id="m-backend">–</code><br>
+      model <code id="m-model">mistral-medium</code><br>
+      communities <code id="m-comms">–</code>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="tabs">
+      <button class="tab active" data-panel="ask">Ask</button>
+      <button class="tab" data-panel="themes">Themes</button>
+    </div>
+
+    <!-- ================= ASK ================= -->
+    <section class="panel active" id="panel-ask">
+      <div class="examples" id="examples"></div>
+
+      <div class="ask-row">
+        <input type="text" id="q" placeholder="Ask something about the corpus…"
+               value="Which datasets does DPR evaluate on?" autocomplete="off">
+        <button class="primary" id="go">Ask</button>
+      </div>
+
+      <div id="error"></div>
+
+      <div class="results" id="results">
+        <div class="route-bar">
+          <span class="mode-badge" id="badge" data-mode="vector">VECTOR</span>
+          <span class="route-reason" id="reason"></span>
+          <span class="pill" id="tokens"></span>
+          <span class="pill" id="calls"></span>
+        </div>
+
+        <div id="fallback-note"></div>
+
+        <div class="grid">
+          <div>
+            <div class="card">
+              <h3>Answer</h3>
+              <div class="answer" id="answer"></div>
+            </div>
+
+            <div class="card" id="graph-card" style="display:none">
+              <h3>Knowledge graph neighbourhood</h3>
+              <div id="graph-panel"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card" id="cypher-card" style="display:none">
+              <h3>Generated Cypher</h3>
+              <pre class="cypher" id="cypher"></pre>
+            </div>
+
+            <div class="card" id="rows-card" style="display:none">
+              <h3>Graph rows</h3>
+              <div style="overflow-x:auto"><table class="rows" id="rows"></table></div>
+            </div>
+
+            <div class="card" id="src-card" style="display:none">
+              <h3>Sources</h3>
+              <div id="sources"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= THEMES ================= -->
+    <section class="panel" id="panel-themes">
+      <div class="card">
+        <h3>Research themes found in the graph</h3>
+        <p class="empty" style="margin-top:-4px;margin-bottom:14px">
+          Detected by Leiden clustering over entity relationships, then summarised.
+          These emerge from the structure of the literature — no topic list was supplied.
+        </p>
+        <div id="communities"><span class="empty">Loading…</span></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

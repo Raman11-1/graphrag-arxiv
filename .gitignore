@@ -1,0 +1,25 @@
+.env
+.venv/
+venv/
+
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+
+# Local stores and downloaded corpora -- rebuildable, never committed
+storage/
+data/raw/
+data/processed/
+
+# Benchmark reports ARE committed -- they are the project's result, and they
+# are small markdown. Only the raw per-run JSONL under data/processed/ is not.
+
+# fastembed downloads ONNX models here
+.fastembed_cache/
+
+.vscode/
+.idea/
