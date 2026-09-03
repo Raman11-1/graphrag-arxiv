@@ -10,10 +10,21 @@ dist/
 .pytest_cache/
 .ruff_cache/
 
-# Local stores and downloaded corpora -- rebuildable, never committed
-storage/
+# Source PDFs are not needed at runtime -- only the derived indexes are.
+# 52MB of papers that anyone can re-fetch from arXiv.
 data/raw/
-data/processed/
+
+# storage/ and data/processed/ ARE committed, deliberately.
+#
+# They are the built graph, vectors and parsed papers -- roughly 93MB. Without
+# them a fresh deploy starts with an empty index and answers every question
+# with "no relevant passages found" until an hour of rate-limited extraction
+# has run on the server. Committing them makes the deploy work on first boot.
+#
+# The raw per-run benchmark logs are the exception: rebuildable and noisy.
+data/processed/eval_*.jsonl
+data/processed/triples.v1.jsonl
+data/processed/merges*.jsonl
 
 # Benchmark reports ARE committed -- they are the project's result, and they
 # are small markdown. Only the raw per-run JSONL under data/processed/ is not.

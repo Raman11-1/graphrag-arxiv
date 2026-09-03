@@ -1,0 +1,57 @@
+# Render deployment.
+#
+# No Dockerfile needed -- Render detects a Python project and installs from
+# pyproject.toml.
+#
+# The graph, vector index and parsed papers are committed to the repo
+# (storage/ and data/processed/), so the service works on first boot rather
+# than needing an hour of rate-limited extraction on the server.
+#
+# MISTRAL_API_KEY is deliberately marked sync:false: Render will prompt for it
+# in the dashboard rather than reading it from this file. Never commit a key.
+
+services:
+  - type: web
+    name: graphrag-arxiv
+    runtime: python
+    plan: free
+    region: oregon
+
+    buildCommand: pip install --upgrade pip && pip install -e .
+    startCommand: uvicorn graphrag.api.main:app --host 0.0.0.0 --port $PORT
+
+    healthCheckPath: /health
+
+    envVars:
+      - key: MISTRAL_API_KEY
+        sync: false          # set this in the Render dashboard, not here
+
+      - key: PYTHON_VERSION
+        value: "3.13.4"      # kuzu publishes no wheel above cp313
+
+      - key: LLM_BACKEND
+        value: mistral
+
+      # The free tier limits TOKENS per minute, not requests. Answering uses
+      # ~8k-token calls, so this is deliberately slow. Every stage retries on
+      # 429, so throttling costs latency rather than failed requests.
+      - key: LLM_RPS
+        value: "0.1"
+
+      - key: EXTRACTION_MODEL
+        value: mistral-medium-latest
+      - key: ROUTER_MODEL
+        value: mistral-small-latest
+      - key: ANSWER_MODEL
+        value: mistral-medium-latest
+      - key: CYPHER_MODEL
+        value: mistral-medium-latest
+      - key: SUMMARY_MODEL
+        value: mistral-medium-latest
+      - key: JUDGE_MODEL
+        value: mistral-medium-latest
+
+      # fastembed downloads its ONNX model on first use. Keep it inside the
+      # service's writable directory.
+      - key: FASTEMBED_CACHE_PATH
+        value: /opt/render/project/src/.fastembed_cache
